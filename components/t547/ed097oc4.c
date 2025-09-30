@@ -2,8 +2,11 @@
 
 #include <string.h>
 
-#include <esp_timer.h>
-#include <xtensa/core-macros.h>
+#include "esp_attr.h"         // IRAM_ATTR (ensure attribute is available)
+#include "esp_timer.h"
+#include "xtensa/core-macros.h"
+#include "esp_rom_sys.h"      // esp_rom_delay_us (IDF 5), if you switch to ROM delay later
+#include "soc/gpio_reg.h"     // REG_WRITE, GPIO_OUT_W1TS_REG / GPIO_OUT_W1TC_REG
 
 #include "i2s_data_bus.h"
 #include "rmt_pulse.h"
@@ -23,15 +26,16 @@ typedef struct {
 static epd_config_register_t config_reg;
 
 /*
- * Write bits directly using the registers.
- * Won't work for some pins (>= 32).
+ * Fast GPIO set/clear for IDF 5.x:
+ * Use register write macros instead of legacy GPIO.out_w1ts/out_w1tc.
+ * (This handles GPIO 0..31; panel wiring uses low GPIOs.)
  */
-inline static void fast_gpio_set_hi(gpio_num_t gpio_num) {
-  GPIO.out_w1ts = (1 << gpio_num);
+static inline IRAM_ATTR void fast_gpio_set_hi(gpio_num_t gpio_num) {
+  REG_WRITE(GPIO_OUT_W1TS_REG, (1U << (uint32_t)gpio_num));
 }
 
-inline static void fast_gpio_set_lo(gpio_num_t gpio_num) {
-  GPIO.out_w1tc = (1 << gpio_num);
+static inline IRAM_ATTR void fast_gpio_set_lo(gpio_num_t gpio_num) {
+  REG_WRITE(GPIO_OUT_W1TC_REG, (1U << (uint32_t)gpio_num));
 }
 
 void IRAM_ATTR busy_delay(uint32_t cycles) {
@@ -144,13 +148,12 @@ void epd_poweroff() {
   // END POWEROFF
 }
 
-void epd_poweroff_all()
-{
-    memset(&config_reg, 0, sizeof(config_reg));
-    push_cfg(&config_reg);
+void epd_poweroff_all(void) {
+  memset(&config_reg, 0, sizeof(config_reg));
+  push_cfg(&config_reg);
 }
 
-void epd_start_frame() {
+void epd_start_frame(void) {
   while (i2s_is_busy() || rmt_busy()) {
   };
   config_reg.ep_mode = true;
@@ -181,7 +184,7 @@ static inline void latch_row() {
   push_cfg(&config_reg);
 }
 
-void IRAM_ATTR epd_skip() {
+void epd_skip(void) {
 #if defined(CONFIG_EPD_DISPLAY_TYPE_ED097TC2)
   pulse_ckv_ticks(2, 2, false);
 #else
@@ -190,7 +193,7 @@ void IRAM_ATTR epd_skip() {
 #endif
 }
 
-void IRAM_ATTR epd_output_row(uint32_t output_time_dus) {
+void epd_output_row(uint32_t output_time_dus) {
 
   while (i2s_is_busy() || rmt_busy()) {
   };
@@ -202,7 +205,7 @@ void IRAM_ATTR epd_output_row(uint32_t output_time_dus) {
   i2s_switch_buffer();
 }
 
-void epd_end_frame() {
+void epd_end_frame(void) {
   config_reg.ep_output_enable = false;
   push_cfg(&config_reg);
   config_reg.ep_mode = false;
@@ -211,7 +214,7 @@ void epd_end_frame() {
   pulse_ckv_us(1, 1, true);
 }
 
-void IRAM_ATTR epd_switch_buffer() { i2s_switch_buffer(); }
-uint8_t IRAM_ATTR *epd_get_current_buffer() {
-  return (uint8_t *)i2s_get_current_buffer();
-};
+void epd_switch_buffer(void) { i2s_switch_buffer(); }
+uint8_t *epd_get_current_buffer(void) {
+  return (uint8_t *) i2s_get_current_buffer();
+}

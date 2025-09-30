@@ -1,7 +1,7 @@
 # esphome custom component(s) 
 
 This repository contains a Display component to support the [LILYGO T5 4.7" E-paper display](http://www.lilygo.cn/prod_view.aspx?TypeId=50061&Id=1384&FId=t3:50061:3).
-for [ESPHome](https://esphome.io/).  
+for [ESPHome](https://esphome.io/) idf5 and arduino3.
 For more info in the display components, see the [ESP Home Display Documentation](https://esphome.io/#display-components)
 
 ## 1. Usage
@@ -12,7 +12,10 @@ Use with [ESPHome](https://esphome.io/) (at least v1.18.0)
 # The Basic Display Definition in ESPhome
 
 external_components:
-  - source: github://tiaanv/esphome-components
+  - source:
+      type: git
+      url: https://github.com/cjb0001/esphome-components
+      ref: idf5-arduino3
     components: ["t547"]
 
 display:

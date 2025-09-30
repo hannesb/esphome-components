@@ -29,7 +29,7 @@ void IRAM_ATTR pulse_ckv_us(uint16_t high_time_us, uint16_t low_time_us,
 /**
  * Indicates if the rmt is currently sending a pulse.
  */
-bool IRAM_ATTR rmt_busy();
+bool IRAM_ATTR rmt_busy(void);
 
 /**
  * Outputs a single pulse (high -> low) on the configured pin.

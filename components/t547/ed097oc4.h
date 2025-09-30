@@ -1,6 +1,14 @@
 #pragma once
 
+// Ensure C linkage when included from C++
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "esp_attr.h"      // IRAM_ATTR
 #include <driver/gpio.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 
 /* Config Reggister Control */
@@ -32,12 +40,12 @@ void epd_base_init(uint32_t epd_row_width);
 /**
  * Start a draw cycle.
  */
-void epd_start_frame();
+void epd_start_frame(void);
 
 /**
  * End a draw cycle.
  */
-void epd_end_frame();
+void epd_end_frame(void);
 
 /**
  * Waits until all previously submitted data has been written.
@@ -53,19 +61,24 @@ void epd_end_frame();
  * This sequence of operations allows for pipelining data preparation and
  * transfer, reducing total refresh times.
  */
-void IRAM_ATTR epd_output_row(uint32_t output_time_dus);
+IRAM_ATTR void epd_output_row(uint32_t output_time_dus);
 
 /** Skip a row without writing to it. */
-void IRAM_ATTR epd_skip();
+IRAM_ATTR void epd_skip(void);
 
 /**
  * Get the currently writable line buffer.
  */
-uint8_t IRAM_ATTR *epd_get_current_buffer();
+IRAM_ATTR uint8_t *epd_get_current_buffer(void);
 
 /**
  * Switches front and back line buffer.
  * If the switched-to line buffer is currently in use,
  * this function blocks until transmission is done.
  */
-void IRAM_ATTR epd_switch_buffer();
+IRAM_ATTR void epd_switch_buffer(void);
+
+// Close C linkage block
+#ifdef __cplusplus
+}
+#endif

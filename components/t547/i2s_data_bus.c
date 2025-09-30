@@ -1,19 +1,38 @@
 #include "i2s_data_bus.h"
 
-#include <driver/periph_ctrl.h>
 #include <esp_heap_caps.h>
 
-// #include <esp_idf_version.h>
-// #if ESP_IDF_VERSION_MAJOR >= 4
-// #include <esp32/rom/lldesc.h>
-// #else
+#if __has_include(<esp_idf_version.h>)
+#include <esp_idf_version.h>
+#endif
 
 #include <rom/lldesc.h>
 
-// #endif
+#ifndef ESP_IDF_VERSION_MAJOR
+#define ESP_IDF_VERSION_MAJOR 3
+#endif
+
+#if ESP_IDF_VERSION_MAJOR >= 5
+#include <esp_private/periph_ctrl.h>
+#else
+#include <driver/periph_ctrl.h>
+#endif
+
+#include <esp_intr_alloc.h>
 #include <soc/i2s_reg.h>
 #include <soc/i2s_struct.h>
 #include <soc/rtc.h>
+#include <soc/gpio_sig_map.h>
+#if ESP_IDF_VERSION_MAJOR >= 5
+#include <esp_rom_gpio.h>
+#endif
+
+#if !defined(I2S1O_DATA_OUT0_IDX) && defined(I2S1_DATA_OUT0_IDX)
+#define I2S1O_DATA_OUT0_IDX I2S1_DATA_OUT0_IDX
+#endif
+#if !defined(I2S1O_WS_OUT_IDX) && defined(I2S1_WS_OUT_IDX)
+#define I2S1O_WS_OUT_IDX I2S1_WS_OUT_IDX
+#endif
 
 
 /// DMA descriptors for front and back line buffer.
@@ -68,11 +87,29 @@ uint32_t dma_desc_addr()
 /// Set up a GPIO as output and route it to a signal.
 static void gpio_setup_out(int gpio, int sig, bool invert)
 {
-    if (gpio == -1)
+    if (gpio == -1) {
         return;
-    PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
+    }
+#if ESP_IDF_VERSION_MAJOR >= 5
+    esp_rom_gpio_pad_select_gpio(gpio);
+#else
+    gpio_pad_select_gpio(gpio);
+#endif
     gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);
+#if ESP_IDF_VERSION_MAJOR >= 5
+    esp_rom_gpio_connect_out_signal(gpio, sig, invert, false);
+#else
     gpio_matrix_out(gpio, sig, invert, false);
+#endif
+}
+
+static inline void i2s_enable_apll_high_speed(void)
+{
+#if ESP_IDF_VERSION_MAJOR >= 5
+    rtc_clk_apll_enable(true);
+#else
+    rtc_clk_apll_enable(1, 0, 0, 8, 0);
+#endif
 }
 
 /// Resets "Start Pulse" signal when the current row output is done.
@@ -87,18 +124,18 @@ static void IRAM_ATTR i2s_int_hdl(void *arg)
     dev->int_clr.val = dev->int_raw.val;
 }
 
-volatile uint8_t IRAM_ATTR *i2s_get_current_buffer()
+volatile uint8_t *i2s_get_current_buffer(void)
 {
-    return current_buffer ? i2s_state.dma_desc_a->buf : i2s_state.dma_desc_b->buf;
+    return current_buffer ? (volatile uint8_t *) i2s_state.dma_desc_a->buf : (volatile uint8_t *) i2s_state.dma_desc_b->buf;
 }
 
-bool IRAM_ATTR i2s_is_busy()
+bool i2s_is_busy(void)
 {
     // DMA and FIFO must be done
     return !output_done || !I2S1.state.tx_idle;
 }
 
-void IRAM_ATTR i2s_switch_buffer()
+void i2s_switch_buffer(void)
 {
     // either device is done transmitting or the switch must be away from the
     // buffer currently used by the DMA engine.
@@ -107,7 +144,7 @@ void IRAM_ATTR i2s_switch_buffer()
     current_buffer = !current_buffer;
 }
 
-void IRAM_ATTR i2s_start_line_output()
+void i2s_start_line_output(void)
 {
     output_done = false;
 
@@ -184,10 +221,10 @@ void i2s_bus_init(i2s_bus_config *cfg)
 
 //#if defined(CONFIG_EPD_DISPLAY_TYPE_ED097OC4_LQ)
     // Initialize Audio Clock (APLL) for 120 Mhz.
-    rtc_clk_apll_enable(1, 0, 0, 8, 0);
+    i2s_enable_apll_high_speed();
 //#else
     // Initialize Audio Clock (APLL) for 80 Mhz.
-// rtc_clk_apll_enable(1, 0, 0, 8, 1);
+// i2s_enable_apll_high_speed();
 //#endif
 
 

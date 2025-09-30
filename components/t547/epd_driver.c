@@ -643,7 +643,7 @@ void epd_copy_to_framebuffer(Rect_t image_area, uint8_t *image_data,
     }
 }
 
-void IRAM_ATTR epd_draw_grayscale_image(Rect_t area, uint8_t *data)
+void epd_draw_grayscale_image(Rect_t area, uint8_t *data)
 {
     epd_draw_image(area, data, BLACK_ON_WHITE);
 }
@@ -759,7 +759,7 @@ void IRAM_ATTR feed_display(OutputParams *params)
     vTaskDelay(portMAX_DELAY);
 }
 
-void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
+void epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
                                    enum DrawMode mode, int time)
 {
 
@@ -833,7 +833,7 @@ void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
     epd_end_frame();
 }
 
-void IRAM_ATTR epd_draw_image(Rect_t area, uint8_t *data, enum DrawMode mode)
+void epd_draw_image(Rect_t area, uint8_t *data, enum DrawMode mode)
 {
     uint8_t line[EPD_WIDTH / 2];
     memset(line, 255, EPD_WIDTH / 2);
