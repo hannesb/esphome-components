@@ -18,6 +18,9 @@ external_components:
       ref: idf5-arduino3
     components: ["t547"]
 
+psram:
+  speed: 80MHz
+
 display:
 - platform: t547
   id: t5_display
