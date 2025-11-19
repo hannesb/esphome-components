@@ -75,10 +75,6 @@ void HOT T547::draw_absolute_pixel_internal(int x, int y, Color color) {
     gs = 255 - gs;
   }
   epd_draw_pixel(x, y, gs, this->buffer_);
-  if (this->xmin_ > x) this->xmin_ = x;
-  if (this->xmax_ < x) this->xmax_ = x;
-  if (this->ymin_ > y) this->ymin_ = y;
-  if (this->ymax_ < y) this->ymax_ = y;
 }
 
 void T547::dump_config() {
@@ -106,12 +102,7 @@ void T547::display() {
   ESP_LOGV(TAG, "Display called");
   uint32_t start_time = millis();
 
-#if 1
-  ESP_LOGV(TAG, "Display area to refresh: xmin = %d xmax = %d ymin = %d ymax = %d", this->xmin_, this->xmax_, this->ymin_, this->ymax_);
-  this->xmin_ = this->get_width_internal()-1;
-  this->xmax_ = 0;
-  this->ymin_ = this->get_height_internal()-1;
-  this->ymax_ = 0;
+#if 0
   epd_poweron();
   epd_clear();
   epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
@@ -127,6 +118,7 @@ void T547::display() {
   uint8_t *ptr = this->buffer_;
   uint8_t *ptr_prev = this->buffer_prev_;
   // Scan for changes
+  int cnt = 0;
   for (int y = 0; y < height; y++) {
     // one byte in buffer_ contains two pixels with 4 bits each
     // -> increment x by 2
@@ -137,9 +129,11 @@ void T547::display() {
         if (ymin > y) ymin = y;
         if (ymax < y) ymax = y;
       }
+	  cnt++;
     }
   }
   ESP_LOGV(TAG, "Display area to refresh: xmin = %d xmax = %d ymin = %d ymax = %d", xmin, xmax, ymin, ymax);
+  ESP_LOGV(TAG, "%d %d", cnt, this->get_buffer_length_());
 
   if (xmin <= xmax && ymin <= ymax) {
     Rect_t area = {.x = xmin, .y = ymin, .width = xmax - xmin + 2, .height = ymax - ymin + 1};
