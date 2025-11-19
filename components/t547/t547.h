@@ -64,11 +64,6 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
   bool invert_;
 
   uint8_t *buffer_prev_{nullptr};
-
-  int xmin_ = 959;
-  int xmax_ = 0;
-  int ymin_ = 539;
-  int ymax_ = 0;
 };
 
 }  // namespace T547
