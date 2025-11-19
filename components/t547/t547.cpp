@@ -128,11 +128,16 @@ void T547::display() {
 
   if (xmin <= xmax && ymin <= ymax) {
     Rect_t area = {.x = xmin, .y = ymin, .width = xmax - xmin + 2, .height = ymax - ymin + 1};
+	ESP_LOGV(TAG, "Display area.x = %d area.y = %d area.width = %d area.height = %d", area.x, area.y, area.width, area.height);
     epd_poweron();
     if (area.width == width && area.height == height) {
+	  ESP_LOGV(TAG, "Calling epd_clear");
       epd_clear();
+	  ESP_LOGV(TAG, "Return from epd_clear");
     } else {
-	    epd_clear_area(area);
+	  ESP_LOGV(TAG, "Calling epd_clear_area");
+	  epd_clear_area(area);
+	  ESP_LOGV(TAG, "Return from epd_clear_area");
     }
     epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
     epd_poweroff();
