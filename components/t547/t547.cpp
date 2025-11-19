@@ -127,7 +127,7 @@ void T547::display() {
   ESP_LOGV(TAG, "Display area to refresh: xmin = %d xmax = %d ymin = %d ymax = %d", xmin, xmax, ymin, ymax);
 
   if (xmin <= xmax && ymin <= ymax) {
-    Rect_t area = {.x = xmin, .y = ymin, .width = xmax - xmin + 1, .height = ymax - ymin + 1};
+    Rect_t area = {.x = xmin, .y = ymin, .width = xmax - xmin + 2, .height = ymax - ymin + 1};
     epd_poweron();
     if (area.width == width && area.height == height) {
       epd_clear();
