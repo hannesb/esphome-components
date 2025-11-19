@@ -25,8 +25,14 @@ void T547::initialize_() {
 
   if (this->buffer_ != nullptr) {
     free(this->buffer_);  // NOLINT
-
-  epd_init();
+    this->buffer_ = nullptr;
+  }
+  if (this->buffer_prev_ != nullptr) {
+    free(this->buffer_prev_);  // NOLINT
+    this->buffer_prev_ = nullptr;
+  }
+  if (this->buffer_ != nullptr || this->buffer_prev_ != nullptr) {
+    epd_init();
   }
 
   this->buffer_ = (uint8_t *) ps_malloc(buffer_size);
@@ -38,6 +44,16 @@ void T547::initialize_() {
   }
   uint8_t background = invert_ ? 255 : 0;
   memset(this->buffer_, background, buffer_size);
+
+  this->buffer_prev_ = (uint8_t *) ps_malloc(buffer_size);
+
+  if (this->buffer_prev_ == nullptr) {
+    ESP_LOGE(TAG, "Could not allocate prev buffer for display!");
+    this->mark_failed();
+    return;
+  }
+  memset(this->buffer_prev_, background, buffer_size);  
+  
   ESP_LOGV(TAG, "Initialize complete");
 }
 
@@ -86,10 +102,42 @@ void T547::display() {
   ESP_LOGV(TAG, "Display called");
   uint32_t start_time = millis();
 
-  epd_poweron();
-  epd_clear();
-  epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
-  epd_poweroff();
+  // determine the area that has to be refreshed
+  int width = this->get_width_internal();
+  int height = this->get_height_internal();
+  int xmin = width - 1;
+  int xmax = 0;
+  int ymin = height - 1;
+  int ymax = 0;
+  uint8_t *ptr = this->buffer_;
+  uint8_t *ptr_prev = this->buffer_prev_;
+  // Scan for changes
+  for (int y = 0; y < height; y++) {
+    // one byte in buffer_ contains two pixels with 4 bits each
+    // -> increment x by 2
+    for (int x = 0; x < width; x += 2) {
+      if (*ptr++ != *ptr_prev++) {
+        if (xmin > x) xmin = x;
+        if (xmax < x) xmax = x;
+        if (ymin > y) ymin = y;
+        if (ymax < y) ymax = y;
+      }
+    }
+  }
+  ESP_LOGV(TAG, "Display area to refresh: xmin = %d xmax = %d ymin = %d ymax = %d", xmin, xmax, ymin, ymax);
+
+  if (xmin <= xmax && ymin <= ymax) {
+    Rect_t area = {.x = xmin, .y = ymin, .width = xmax - xmin + 1, .height = ymax - ymin + 1};
+    epd_poweron();
+    if (area.width == width && area.height == height) {
+      epd_clear();
+    } else {
+	    epd_clear_area(area);
+    }
+    epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
+    epd_poweroff();
+  }
+  memcpy(this->buffer_prev_, this->buffer_, this->get_buffer_length_());
 
   ESP_LOGV(TAG, "Display finished (full) (%ums)", millis() - start_time);
 }
