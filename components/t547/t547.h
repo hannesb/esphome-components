@@ -50,7 +50,6 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
   void eink_off_();
   void eink_on_();
 
-
   int get_width_internal() override { return 960; }
 
   int get_height_internal() override { return 540; }
@@ -62,6 +61,8 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
 
   bool greyscale_;
   bool invert_;
+
+  uint8_t *buffer_prev_{nullptr};
 };
 
 }  // namespace T547
