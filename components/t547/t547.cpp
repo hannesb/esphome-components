@@ -102,12 +102,6 @@ void T547::display() {
   ESP_LOGV(TAG, "Display called");
   uint32_t start_time = millis();
 
-#if 0
-  epd_poweron();
-  epd_clear();
-  epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
-  epd_poweroff();	
-#else
   // determine the area that has to be refreshed
   int width = this->get_width_internal();
   int height = this->get_height_internal();
@@ -118,7 +112,6 @@ void T547::display() {
   uint8_t *ptr = this->buffer_;
   uint8_t *ptr_prev = this->buffer_prev_;
   // Scan for changes
-  int cnt = 0;
   for (int y = 0; y < height; y++) {
     // one byte in buffer_ contains two pixels with 4 bits each
     // -> increment x by 2
@@ -129,30 +122,23 @@ void T547::display() {
         if (ymin > y) ymin = y;
         if (ymax < y) ymax = y;
       }
-	  cnt++;
     }
   }
   ESP_LOGV(TAG, "Display area to refresh: xmin = %d xmax = %d ymin = %d ymax = %d", xmin, xmax, ymin, ymax);
-  ESP_LOGV(TAG, "%d %d", cnt, this->get_buffer_length_());
 
   if (xmin <= xmax && ymin <= ymax) {
     Rect_t area = {.x = xmin, .y = ymin, .width = xmax - xmin + 2, .height = ymax - ymin + 1};
-	ESP_LOGV(TAG, "Display area.x = %d area.y = %d area.width = %d area.height = %d", area.x, area.y, area.width, area.height);
     epd_poweron();
     if (area.width == width && area.height == height) {
-	  ESP_LOGV(TAG, "Calling epd_clear");
       epd_clear();
-	  ESP_LOGV(TAG, "Return from epd_clear");
     } else {
-	  ESP_LOGV(TAG, "Calling epd_clear_area");
 	  epd_clear_area(area);
-	  ESP_LOGV(TAG, "Return from epd_clear_area");
     }
     epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
     epd_poweroff();
   }
   memcpy(this->buffer_prev_, this->buffer_, this->get_buffer_length_());
-#endif
+
   ESP_LOGV(TAG, "Display finished (full) (%ums)", millis() - start_time);
 }
 
