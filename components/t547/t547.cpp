@@ -75,6 +75,10 @@ void HOT T547::draw_absolute_pixel_internal(int x, int y, Color color) {
     gs = 255 - gs;
   }
   epd_draw_pixel(x, y, gs, this->buffer_);
+  if (this->xmin_ > x) this->xmin_ = x;
+  if (this->xmax_ < x) this->xmax_ = x;
+  if (this->ymin_ > y) this->ymin_ = y;
+  if (this->ymax_ < y) this->ymax_ = y;
 }
 
 void T547::dump_config() {
@@ -103,6 +107,11 @@ void T547::display() {
   uint32_t start_time = millis();
 
 #if 1
+  ESP_LOGV(TAG, "Display area to refresh: xmin = %d xmax = %d ymin = %d ymax = %d", this->xmin_, this->xmax_, this->ymin_, this->ymax_);
+  this->xmin_ = this->get_width_internal()-1;
+  this->xmax_ = 0;
+  this->ymin_ = this->get_height_internal()-1;
+  this->ymax_ = 0;
   epd_poweron();
   epd_clear();
   epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
