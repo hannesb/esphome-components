@@ -25,13 +25,13 @@ void T547::initialize_() {
 
   if (this->buffer_ != nullptr) {
     free(this->buffer_);  // NOLINT
-    this->buffer_ = nullptr;
   }
   if (this->buffer_prev_ != nullptr) {
     free(this->buffer_prev_);  // NOLINT
-    this->buffer_prev_ = nullptr;
   }
   if (this->buffer_ != nullptr || this->buffer_prev_ != nullptr) {
+    this->buffer_ = nullptr;
+    this->buffer_prev_ = nullptr;
     epd_init();
   }
 
@@ -102,6 +102,12 @@ void T547::display() {
   ESP_LOGV(TAG, "Display called");
   uint32_t start_time = millis();
 
+#if 1
+  epd_poweron();
+  epd_clear();
+  epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
+  epd_poweroff();	
+#else
   // determine the area that has to be refreshed
   int width = this->get_width_internal();
   int height = this->get_height_internal();
@@ -143,7 +149,7 @@ void T547::display() {
     epd_poweroff();
   }
   memcpy(this->buffer_prev_, this->buffer_, this->get_buffer_length_());
-
+#endif
   ESP_LOGV(TAG, "Display finished (full) (%ums)", millis() - start_time);
 }
 
