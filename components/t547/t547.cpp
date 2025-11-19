@@ -89,7 +89,7 @@ void T547::display() {
   epd_poweron();
   epd_clear();
   epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
-  epd_poweroff_all();
+  epd_poweroff();
 
   ESP_LOGV(TAG, "Display finished (full) (%ums)", millis() - start_time);
 }
