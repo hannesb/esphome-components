@@ -62,6 +62,8 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
 
   bool greyscale_;
   bool invert_;
+
+  uint8_t *buffer_prev_{nullptr};
 };
 
 }  // namespace T547
