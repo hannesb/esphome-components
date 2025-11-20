@@ -8,10 +8,15 @@
 
 #include <esp32-hal-gpio.h>
 
+// Perform a full refresh every 3 hours
+#define FULL_REFRESH_EVERY_MILLIS (3*60*60*1000)
+
 namespace esphome {
 namespace t547 {
 
 static const char *const TAG = "t574";
+
+uint32_t last_full_refresh=0; // Last timestamp of full refresh
 
 void T547::setup() {
   this->initialize_();
@@ -127,9 +132,13 @@ void T547::display() {
   ESP_LOGV(TAG, "Display area to refresh: xmin = %d xmax = %d ymin = %d ymax = %d", xmin, xmax, ymin, ymax);
 
   if (xmin <= xmax && ymin <= ymax) {
+	// Add 2 pixels left and right
+	if (xmin != 0) xmin -= 2;
+	if (xmax < width - 2) xmax += 2;
     Rect_t area = {.x = xmin, .y = ymin, .width = xmax - xmin + 2, .height = ymax - ymin + 1};
     epd_poweron();
-    if (area.width == width && area.height == height) {
+    if (area.width == width && area.height == height || millis()-last_full_refresh >= FULL_REFRESH_EVERY_MILLIS) {
+	  last_full_refresh = millis();
       epd_clear();
     } else {
 	  epd_clear_area(area);
