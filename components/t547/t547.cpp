@@ -8,6 +8,10 @@
 
 #include <esp32-hal-gpio.h>
 
+// Partial refresh approach inspired by 
+// https://github.com/DooMMasteR/esphome-lilygo-t547plus-partial-refresh
+// (which is for t547plus)
+
 // Perform a full refresh every 3 hours
 #define FULL_REFRESH_EVERY_MILLIS (3*60*60*1000)
 
