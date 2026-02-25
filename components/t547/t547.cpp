@@ -141,7 +141,7 @@ void T547::display() {
 	if (xmax < width - 2) xmax += 2;
     Rect_t area = {.x = xmin, .y = ymin, .width = xmax - xmin + 2, .height = ymax - ymin + 1};
     epd_poweron();
-    if (area.width == width && area.height == height || millis()-last_full_refresh >= FULL_REFRESH_EVERY_MILLIS) {
+    if (area.width >= width/2 || area.height >= height/2 || millis()-last_full_refresh >= FULL_REFRESH_EVERY_MILLIS) {
 	  last_full_refresh = millis();
       epd_clear();
     } else {
