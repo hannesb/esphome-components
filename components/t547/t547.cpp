@@ -95,7 +95,7 @@ void T547::eink_off_() {
   ESP_LOGV(TAG, "Eink off called");
   if (panel_on_ == 0)
     return;
-  epd_poweroff();
+  epd_poweroff_all();
   panel_on_ = 0;
 }
 
@@ -148,7 +148,7 @@ void T547::display() {
 	  epd_clear_area(area);
     }
     epd_draw_grayscale_image(epd_full_screen(), this->buffer_);
-    epd_poweroff();
+    epd_poweroff_all();
   }
   memcpy(this->buffer_prev_, this->buffer_, this->get_buffer_length_());
 
