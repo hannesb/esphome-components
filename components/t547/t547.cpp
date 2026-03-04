@@ -67,25 +67,27 @@ void T547::initialize_() {
 }
 
 void set_screen_repair(bool screen_repair) {
-    Rect_t area = epd_full_screen();
-    epd_poweron();
-    delay(10);
-    epd_clear();
-    
-    // Black refresh cycle
-    for (int i = 0; i < 20; i++) {
-        epd_push_pixels(area, 50, 0);
-        delay(500);
-    }
-    epd_clear();
-    
-    // White refresh cycle
-    for (int i = 0; i < 40; i++) {
-        epd_push_pixels(area, 50, 1);
-        delay(500);
-    }
-    epd_clear();
-    epd_poweroff_all();
+	if (screen_repair) {
+	    Rect_t area = epd_full_screen();
+	    epd_poweron();
+	    delay(10);
+	    epd_clear();
+	    
+	    // Black refresh cycle
+	    for (int i = 0; i < 20; i++) {
+	        epd_push_pixels(area, 50, 0);
+	        delay(500);
+	    }
+	    epd_clear();
+	    
+	    // White refresh cycle
+	    for (int i = 0; i < 40; i++) {
+	        epd_push_pixels(area, 50, 1);
+	        delay(500);
+	    }
+	    epd_clear();
+	    epd_poweroff_all();
+	}
 }
 
 float T547::get_setup_priority() const { return setup_priority::PROCESSOR; }
