@@ -13,6 +13,7 @@ from esphome.const import __version__ as ESPHOME_VERSION
 DEPENDENCIES = ["esp32"]
 
 CONF_GREYSCALE = "greyscale"
+CONF_SCREEN_REPAIR = "screen_repair"
 
 t547_ns = cg.esphome_ns.namespace("t547")
 T547 = t547_ns.class_(
@@ -24,6 +25,7 @@ CONFIG_SCHEMA = cv.All(
         {
             cv.GenerateID(): cv.declare_id(T547),
             cv.Optional(CONF_GREYSCALE, default=False): cv.boolean,
+            cv.Optional(CONF_SCREEN_REPAIR, default=False): cv.boolean,
             cv.Optional(CONF_INVERT, default=True): cv.boolean,
         }
     )
@@ -53,5 +55,6 @@ async def to_code(config):
 
     cg.add(var.set_greyscale(config[CONF_GREYSCALE]))
     cg.add(var.set_invert(config[CONF_INVERT]))
+    cg.add(var.set_screen_repair(config[CONF_SCREEN_REPAIR]))
 
     cg.add_build_flag("-DBOARD_HAS_PSRAM")
