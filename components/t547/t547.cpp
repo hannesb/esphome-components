@@ -66,7 +66,7 @@ void T547::initialize_() {
   ESP_LOGV(TAG, "Initialize complete");
 }
 
-void set_screen_repair(bool screen_repair) {
+void T547::set_screen_repair(bool screen_repair) {
 	if (screen_repair) {
 	    Rect_t area = epd_full_screen();
 	    epd_poweron();
