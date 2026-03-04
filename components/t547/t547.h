@@ -23,6 +23,7 @@ class T547 : public PollingComponent, public display::DisplayBuffer {
     this->initialize_();
   }
   void set_invert(bool invert) { this->invert_ = invert; }
+  void set_screen_repair(bool screen_repair);
 
   float get_setup_priority() const override;
 
